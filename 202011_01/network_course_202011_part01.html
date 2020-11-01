@@ -22,7 +22,7 @@ class: center, middle, inverse, title-slide
 
 background-position: 50% 50%
 class: center, bottom
-background-image: url("/pic/unnamed-chunk-1-1.png")
+background-image: url("pic/unnamed-chunk-1-1.png")
 background-size: 85%
 
 #### &lt;font color = "steelblue"&gt;COOL!&lt;/font&gt; 
@@ -43,7 +43,7 @@ class: left, top
 
 2) Point &amp; Click 방식의 네트워크 분석도구(Gephi, Pajek, Ucinet 등)에 대한 의존에서 벗어나, 프로그래밍 방식에 의해 **분석의 자유도**를 높일 수 있다. 
 
-![:scale 150%](/pic/data-science-explore.png)
+![:scale 150%](pic/data-science-explore.png)
 
 3) 네트워크 분석과 다른 데이터 분석 프로세스 간의 장벽을 허물고, tidygraph, ggraph 등 네트워크 분석 관련 R의 최신 패키지를 활용하여 **통합 프레임**에서 진행할 수 있게 된다.  
  
@@ -201,20 +201,20 @@ class: inverse, center, middle
 - 개체(nodes, vertices) + 노드 간 연결(edges, links, ties) 
 
 - 그리고 node와 edge에 부여된 다양한 속성(attributes) (그림에서 어떻게 표현?)
-![:scale 88%](/pic/network_data_scheme01.png)
+![:scale 88%](pic/network_data_scheme01.png)
 
 ---
 ## 네트워크 데이터의 분해 
 - node, edge의 속성들은 네트워크에 **독립**적인 것(소속 집단, 젠더, 년도 등) + 네트워크**에서 추출**된 것 (클러스터링 결과인 소속 집단, 중앙성 지표 값 등)으로 구분  
 
-  ![:scale 62%](/pic/network_data_scheme02.png)
+  ![:scale 62%](pic/network_data_scheme02.png)
 ---
 ## 네트워크 데이터의 재결합  
 
 - 노드 + 노드 속성, 에지 + 에지 속성을 각각 **데이터 프레임** 형태로 표현 
 
 - 노드, 에지 각 두 가지 데이터를 결합하여 **네트워크 데이터** 'object'로 관리   
-   ![:scale 85%](/pic/network_data_scheme03.png)
+   ![:scale 85%](pic/network_data_scheme03.png)
 
 ---
 
@@ -268,7 +268,7 @@ class: inverse, center, middle
 ---
 ### tidyverse에서 tidygraph, ggraph의 통합 연동
 
-  ![scale: 80%](/pic/tidyverse_integrated.png)
+  ![scale: 80%](pic/tidyverse_integrated.png)
 
 ---
 ## 정리 : 데이터에서 "tidy"의 의미 
@@ -281,7 +281,7 @@ class: inverse, center, middle
 
   - 각각의 셀(cell)은 **단일한 값**을 갖는다 
 
-![scale: 80%](/pic/tidy_data_way.png)
+![scale: 80%](pic/tidy_data_way.png)
 
  네트워크 데이터에 대해 tidy 원리의 적용은 node에 대해서, edge 에 대해서 **따로** 적용 
    
@@ -293,11 +293,11 @@ class: inverse, center, middle
 
 node와 edge, directed/undirected 를 그래프 형태로 그리기 
 
-  ![:scale 65%](/pic/terminology_01.png)
+  ![:scale 65%](pic/terminology_01.png)
 
 node와 edge의 관계를 행렬(Matrix)로 그리기 
 
-  ![:scale 65%](/pic/terminology_02.png)
+  ![:scale 65%](pic/terminology_02.png)
 
 ---
 우선 네트워크를 행렬로 표현해 보자. 행과 열이 동일한 undirected 경우에는 아래 두 경우가 동일 
@@ -489,7 +489,7 @@ class: inverse
 ```r
  plot(g)
 ```
-![:scale 80%](/pic/Bull.png)
+![:scale 80%](pic/Bull.png)
 ---
 class: inverse
 
@@ -528,14 +528,14 @@ class: inverse
 
 이와 별도로 두 개체 간의 직접적인 동시출현 관계는 보통 정규화 과정을 거치며, 
 
-   ![:scale 55%](/pic/cooc_normalize.png)
+   ![:scale 55%](pic/cooc_normalize.png)
 
 Association Strength, Cosine, Inclusion, Jaccard 등의 유사도 지수 활용 (*Si*는 i개체의 총 출현빈도) 
 
 ---
 프로파일 기반 유사도는 프로파일 벡터 간의 유사도를 측정하게 되며 대개 두 벡터 간의 Cosine을 측정 
 
-  ![:scale 50%](/pic/cosine_formula.png)
+  ![:scale 50%](pic/cosine_formula.png)
 
 - 개체의 갯수에 따라 비교해야할 개체의 쌍이 급격히 증가 (n*(n-1)/2)&lt;br&gt;
    개체가 1000개면 499,500 pairs &lt;br&gt;
@@ -552,12 +552,12 @@ Association Strength, Cosine, Inclusion, Jaccard 등의 유사도 지수 활용 
 * Web of Science에서 개별 논문에 대해 각 분석 대상들이 **필드(field)**에 혼재되어 있는 모습 (예 : 김빛내리 교수 논문)
 
 
-![:scale 110%](/pic/Vnarry_01.png)
+![:scale 110%](pic/Vnarry_01.png)
 ---
 
 * Co-occurrences, Directed relations, (Profile based) Similarity 등의 관계는 분석자가 정의한 **문서 집합**에서 **누적**된 값을 계산하여 추출   
 
-![:scale 110%](/pic/Vnarry_02.png)
+![:scale 110%](pic/Vnarry_02.png)
 ---
 class: inverse, middle, center
 
@@ -577,22 +577,22 @@ class: inverse, middle, center
 BC, CC는 앞서 **연결의 유형**에서 프로파일 기반의 유사도에 해당됨. 
 
 * BC는 비교 대상 개체의 레퍼런스 프로파일 벡터(citing vector, backward-citation) 간 **중첩 빈도**로, CC는 비교 대상 개체의 피인용 프로파일 벡터(cited vector, forward-citation) 간의 **중첩 빈도**로 가정하면 됨. 
-![:scale 85%](/pic/bc_cc_profile_scheme.png)
+![:scale 85%](pic/bc_cc_profile_scheme.png)
 
 ---
 class: inverse, center, middle 
-![:scale 18%](/pic/tidygraph_logo.png)
+![:scale 18%](pic/tidygraph_logo.png)
 ### 네트워크 데이터를 다루기 위해서는
 ### 근간을 이루는 
 ### 데이터프레임 형태의 데이터에 대한  
 ### 숙련된 처리 능력이 필요
-![:scale 18%](/pic/datatable_logo.png)  ![:scale 18%](/pic/dplyr_logo.png) 
+![:scale 18%](pic/datatable_logo.png)  ![:scale 18%](pic/dplyr_logo.png) 
 
 ---
 ### [data.table](http://r-datatable.com) 패키지의 병행  
 
 Python, R 두 진영에서 데이터 프레임 처리 속도와 효율에서 압도적인 성능(https://h2oai.github.io/db-benchmark/) 
-![:scale 65%](/pic/datatable_bench.png)
+![:scale 65%](pic/datatable_bench.png)
 
 tidyverse의 dplyr이 직관적이나 성능은 뒤쳐짐. data.table을 백엔드로 하고, dplyr의 문법을 적용할 수 있는 [dtplyr](https://cran.r-project.org/web/packages/dtplyr/index.html)도 등장하긴 하였으나, data.table의 직접 이용 적극 권장됨.  
 
@@ -928,17 +928,17 @@ class: inverse
 class: inverse, middle, center
 
 ### 네트워크 시각화를 위한 ggraph은 
-![](/pic/ggraph_logo.png)
+![](pic/ggraph_logo.png)
 ### ggplot2과 연동 + 문법 그대로 이용 
-![:scale 18%](/pic/ggplot2_logo.png)
+![:scale 18%](pic/ggplot2_logo.png)
 ### ggplot2의 활용능력은? 
 ---
 ##### ggplot
 .pull-left[
 ggplot2는 그래프의 요소들을 레이어(layer)화하고, 이를 결합하는 매우 체계적인 문법구조를 갖추고 있음. 
 
-![:scale 72%](/pic/ggplot_scheme_01.png)]
-.pull-right[![:scale 75%](/pic/ggplot_scheme_02.png)]
+![:scale 72%](pic/ggplot_scheme_01.png)]
+.pull-right[![:scale 75%](pic/ggplot_scheme_02.png)]
 ---
 #### gapminder 데이터 시각화 
 
@@ -1139,7 +1139,7 @@ class: inverse
 
 * iris데이터는 세가지 종에 대해 Sepal.Length, Sepal.Width, Petal.Length, Petal.Width 4가지 들어 있다. 이 4가지 변수를 Length와 Width를 "type"이라는 이름의 변수로 하여 long type을 만들고, 아래 그림을 생성해 보세요.  
 
-  ![:scale 70%](/pic/iris_exercise.png)
+  ![:scale 70%](pic/iris_exercise.png)
 
 ---
 class: inverse, middle, center
