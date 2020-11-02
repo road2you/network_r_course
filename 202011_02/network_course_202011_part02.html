@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>R 활용 서지데이터 네트워크 분석 및 시각화</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="이준영 (road2you@kisti.re.kr)" />
+    <script src="libs/header-attrs-2.5/header-attrs.js"></script>
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link rel="stylesheet" href="css/my_hangul.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# R 활용 서지데이터<br>네트워크 분석 및 시각화
+## 🌌 2일차
+### 이준영 (<a href="mailto:road2you@kisti.re.kr" class="email">road2you@kisti.re.kr</a>)
+### KISTI, 미래기술분석센터
+### 2020년 11월 2-3일
+
+---
+
+### tidygraph와 ggraph 기초 문법
+dplyr과 ggplot의 문법을 그대로 활용
+
+```r
+library(tidygraph);library(ggraph)
+g &lt;- create_notable("Bull")
+par(mar = c(14,2,0,2)) # 슬라이드 편집을 위한 단순 마진 설정
+plot(g) 
+```
+
+![](network_course_202011_part02_files/figure-html/unnamed-chunk-1-1.png)&lt;!-- --&gt;
+---
+tbl_graph 오브젝트의 구조를 들여다보기 (분석 욕구...)
+
+* 노드/에지에 접근해서 
+* 속성을 수정/추가를 하거나 
+* 조건에 맞는 것을 골라내고 싶다.  
+
+
+```r
+# 다시 구조 들여다보기 
+g
+```
+
+```
+## # A tbl_graph: 5 nodes and 5 edges
+## #
+## # An undirected simple graph with 1 component
+## #
+## # Node Data: 5 x 0 (active)
+## #
+## # Edge Data: 5 x 2
+##    from    to
+##   &lt;int&gt; &lt;int&gt;
+## 1     1     2
+## 2     1     3
+## 3     2     3
+## # … with 2 more rows
+```
+당장 이 그래프는 노드의 이름도 없음. 
+---
+#### 노드, 에지에 대한 접근 
+activate 함수를 쓰면 됨. 
+
+```r
+# activate(nodes) / %N&gt;% 
+# activate(edges) / %E&gt;%
+g &lt;- g %&gt;% activate(nodes) %&gt;% 
+  mutate(name = letters[1:5],
+         size = c(1,3,3,2,1)) %&gt;% 
+  activate(edges) %&gt;% mutate(weight = c(5,2,2,1,5))
+g # 오브젝트 출력시 최종 activate된 것을 먼저 표시
+```
+
+```
+## # A tbl_graph: 5 nodes and 5 edges
+## #
+## # An undirected simple graph with 1 component
+## #
+## # Edge Data: 5 x 3 (active)
+##    from    to weight
+##   &lt;int&gt; &lt;int&gt;  &lt;dbl&gt;
+## 1     1     2      5
+## 2     1     3      2
+## 3     2     3      2
+## 4     2     4      1
+## 5     3     5      5
+## #
+## # Node Data: 5 x 2
+##   name   size
+##   &lt;chr&gt; &lt;dbl&gt;
+## 1 a         1
+## 2 b         3
+## 3 c         3
+## # … with 2 more rows
+```
+---
+#### 변경된 것 확인 겸 tidygraph로 바로 들어감  
+
+
+```r
+ggraph(g, layout = "auto") + 
+  geom_node_point(aes(size = size), color = "steelblue") +
+  geom_edge_link(aes(width = factor(weight)), color = "lightgrey") +
+  theme_graph()
+```
+
+```
+## Using `stress` as default layout
+```
+
+&lt;img src="network_course_202011_part02_files/figure-html/unnamed-chunk-4-1.png" width="50%" /&gt;
+
+---
+앞에서 고쳐야 할 점 
+* node가 edge에 가려버림
+* edge를 width를 weight로 하니 너무 굵음. 스케일 조정 필요
+* node 이름을 붙이고 싶음
+
+
+```r
+ggraph(g, layout = "auto") +
+  geom_edge_link(aes(width = factor(weight)), color = "lightgrey") +
+  geom_node_point(aes(size = size), color = "steelblue") +
+  scale_edge_width_discrete(range = c(1,2)) +
+  geom_node_text(aes(label = name), repel = TRUE) +
+  theme_graph()
+```
+
+```
+## Using `stress` as default layout
+```
+
+&lt;img src="network_course_202011_part02_files/figure-html/unnamed-chunk-5-1.png" width="42%" /&gt;
+
+---
+앞 그림에서 legend 변경은, 여러 방식이 가능(scal_color_manual, scale_fill_manual...뒤에 나옵니다). 하지만 아래 방식이 가장 간편하죠. 
+
+
+```r
+# guides(color = guide_legend(title = "GROUP"),
+#        size = guide_legend(title  = "SIZE")) + 
+# theme(text = element_text(family = "NanumBarunGothic"))
+```
+폰트 변경도 한번 해봅시다 
+
+
+```r
+# 한글 폰트를 위해서는 extrafont, showtext (구글웹폰트지원) 필요
+# library(extrafont)
+# font_import(pattern = "Nanum")
+# library(showtext)
+# font_add_google("Gochi Hand", "gochi") 
+# showtext_auto() 
+```
+
+
+---
+dplyr, ggplot의 기초 문법과 동일하기 때문에, 네트워크 분석에 추가된 요소를 필요에 따라 찾아서 활용하면 됨. &lt;br&gt;
+바로 (준)실전 데이터인 Zachary 가라데 클럽 데이터로 나아가 봅니다.  
+
+
+```r
+karate &lt;- create_notable("Zachary")
+karate
+```
+
+```
+## # A tbl_graph: 34 nodes and 78 edges
+## #
+## # An undirected simple graph with 1 component
+## #
+## # Node Data: 34 x 0 (active)
+## #
+## # Edge Data: 78 x 2
+##    from    to
+##   &lt;int&gt; &lt;int&gt;
+## 1     1     2
+## 2     1     3
+## 3     1     4
+## # … with 75 more rows
+```
+* 34개 노드 78개 엣지 
+* 1번은 사범 Mr. Hi, 34번은 관장 Mr. John A
+* 다툼으로 사범쪽 16, 관장쪽 18개로 분리 
+* community detection의 교과서 데이터
+
+---
+클러스터링을 시도해봅니다
+
+```r
+karate &lt;- karate %&gt;% activate(nodes) %&gt;% 
+  mutate(name = 1:graph_order(),
+         group = group_infomap(),
+         weight = centrality_pagerank())
+karate
+```
+
+```
+## # A tbl_graph: 34 nodes and 78 edges
+## #
+## # An undirected simple graph with 1 component
+## #
+## # Node Data: 34 x 3 (active)
+##    name group weight
+##   &lt;int&gt; &lt;int&gt;  &lt;dbl&gt;
+## 1     1     2 0.0970
+## 2     2     2 0.0529
+## 3     3     2 0.0571
+## 4     4     2 0.0359
+## 5     5     3 0.0220
+## 6     6     3 0.0291
+## # … with 28 more rows
+## #
+## # Edge Data: 78 x 2
+##    from    to
+##   &lt;int&gt; &lt;int&gt;
+## 1     1     2
+## 2     1     3
+## 3     1     4
+## # … with 75 more rows
+```
+---
+결과를 시각화 해봅니다. 
+
+```r
+ggraph(karate, layout = "kk") + 
+  geom_edge_link(color = "lightgrey") +
+  geom_node_point(aes(color = factor(group),
+                      size = weight)) + 
+  geom_node_text(aes(label = name), repel = TRUE) + theme_graph()
+```
+
+&lt;img src="network_course_202011_part02_files/figure-html/unnamed-chunk-10-1.png" width="65%" /&gt;
+---
+그룹별로 떼어내 보고 싶으면 facet을 적용합니다. 
+
+
+```r
+p + facet_nodes(~group) + theme(legend.position = "none")
+```
+
+&lt;img src="network_course_202011_part02_files/figure-html/unnamed-chunk-12-1.png" width="70%" /&gt;
+---
+facet은 노드뿐만 아니라 에지에 대해서도 할 수 있습니다. 
+
+
+```r
+# 이미 만들어 둔 Bull 그래프를 이용해봅니다. 
+ggraph(g, layout = "auto") + 
+  geom_edge_link(aes(width = factor(weight)), color = "lightgrey") +
+  geom_node_point(aes(size = size), color = "steelblue") +
+  scale_edge_width_discrete(range = c(1,2)) + facet_edges(~weight)
+```
+
+&lt;img src="network_course_202011_part02_files/figure-html/unnamed-chunk-13-1.png" width="60%" /&gt;
+---
+#### 여기서 잠깐. 데이터 반출(export)과 반입(import) 연습을 해봅시다. 
+- 작업 결과물을 저장을 해야 하는데 
+- 노드와 에지 모두 각각 데이터프레임
+- 따로 저장하고, 반출하는 방식이 제일 효율적
+- 그래프 오브젝트 자체 저장은 saveRDS, readRDS 방식도 좋음 
+
+```r
+# zachary_edge &lt;- karate %&gt;% activate(edges) %&gt;% as.data.frame / as_tibble
+# zachary_node &lt;- karate %&gt;% activate(nodes) %&gt;% as.data.frame / as_tibble
+```
+
+
+```r
+# 데이터 반출/반입에는 아래 패키지 사용 
+library(readr)
+# write_csv, read_csv, read_tsv....
+library(data.table)
+# fwrite, fread
+library(readxl)
+# read_xlsx... 엑셀 반출은 xlsx, open.xlsx 같은 패키지...하지만 비추천
+# 직접 해봅시다 
+```
+
+---
+#### 어느덧 친근해진 mtcars 로 링크를 생성해봅니다.  
+연속형 변수만 골라서 이것들을 feature로 한 correlation을 계산하고 
+1에 가까운 링크만 남깁니다.  
+
+```r
+library(corrr)
+cor_res &lt;- mtcars[, c(1, 3:6)] %&gt;% 
+  t() %&gt;% correlate() %&gt;% shave(upper = TRUE) %&gt;% 
+  stretch(na.rm = TRUE) %&gt;% filter(r &gt;= 0.998)
+cor_res
+```
+
+```
+## # A tibble: 59 x 3
+##    x             y                 r
+##    &lt;chr&gt;         &lt;chr&gt;         &lt;dbl&gt;
+##  1 Mazda RX4     Mazda RX4 Wag 1.00 
+##  2 Mazda RX4     Merc 230      1.00 
+##  3 Mazda RX4     Merc 280      0.999
+##  4 Mazda RX4     Merc 280C     0.999
+##  5 Mazda RX4     Merc 450SL    0.998
+##  6 Mazda RX4 Wag Merc 230      1.00 
+##  7 Mazda RX4 Wag Merc 280      0.999
+##  8 Mazda RX4 Wag Merc 280C     0.999
+##  9 Mazda RX4 Wag Merc 450SL    0.998
+## 10 Datsun 710    Toyota Corona 0.999
+## # … with 49 more rows
+```
+---
+높은 상관계수를 갖는 자동차 모델들의 네트워크를 시각화 해봅시다. 
+
+```r
+g_cor &lt;- as_tbl_graph(cor_res, directed = FALSE)
+ggraph(g_cor, layout = "kk") + geom_edge_link(color = "lightgrey") +
+  geom_node_point() + geom_node_text(aes(label = name), size = 3, repel = TRUE)
+```
+
+&lt;img src="network_course_202011_part02_files/figure-html/unnamed-chunk-17-1.png" width="65%" /&gt;
+---
+링크를 연속형 변수에 대해서 했기 때문에, 3개의 component로 나뉜 결과에 실린더 갯수라는 변수를 추가해 보기로 합니다. 
+
+
+```r
+# merge로 갖다 붙힐 꼭 필요한 값만 데이터프레임으로 만듭니다. 
+df_cyl &lt;- data.frame(name = rownames(mtcars),
+                     cyl = factor(mtcars$cyl))
+g_cor &lt;- g_cor %&gt;% activate(nodes) %&gt;% 
+  left_join(df_cyl, by = "name")
+g_cor
+```
+
+```
+## # A tbl_graph: 24 nodes and 59 edges
+## #
+## # An undirected simple graph with 3 components
+## #
+## # Node Data: 24 x 2 (active)
+##   name              cyl  
+##   &lt;chr&gt;             &lt;fct&gt;
+## 1 Mazda RX4         6    
+## 2 Mazda RX4 Wag     6    
+## 3 Datsun 710        4    
+## 4 Hornet 4 Drive    6    
+## 5 Hornet Sportabout 8    
+## 6 Valiant           6    
+## # … with 18 more rows
+## #
+## # Edge Data: 59 x 3
+##    from    to     r
+##   &lt;int&gt; &lt;int&gt; &lt;dbl&gt;
+## 1     1     2 1.00 
+## 2     1    20 1.00 
+## 3     1     8 0.999
+## # … with 56 more rows
+```
+---
+실린더를 앞서 그린 그래프에 표시해 봅니다. 
+
+
+```r
+ggraph(g_cor, layout = "kk") +
+  geom_edge_link(aes(width = r, alpha = r)) +
+  scale_edge_width(range = c(0.2, 1)) +
+  geom_node_point(aes(color = cyl), size = 2) + 
+  geom_node_text(aes(label = name), size = 3, repel = TRUE)
+```
+
+&lt;img src="network_course_202011_part02_files/figure-html/unnamed-chunk-19-1.png" width="65%" /&gt;
+---
+### 그래프의 변형/조작
+tidygraph가 뛰어난 점은 특정 조건에 맞는 그래프를 일부만 떼어 조작을 하고 다시 원래의 그래프로 돌아가는 `morph()`, 이것과 연동하여 일부만 떼어낸 것을 그대로 가져오는 `convert()` 함수의 존재입니다.  
+
+
+```r
+myg &lt;- tbl_graph(edges = data.frame(from = c(1,1,1,2,4,4),
+                 to = c(2,3,4,5,3,5)),
+                 directed = FALSE)
+plot(myg)
+```
+
+&lt;img src="network_course_202011_part02_files/figure-html/unnamed-chunk-20-1.png" width="50%" /&gt;
+---
+앞의 그래프는 사실 아래 그림의 왼쪽에 해당합니다. 이것을 가장 오른쪽에 있는 [**line graph**](https://en.wikipedia.org/wiki/Line_graph)로 변형해봅니다. 
+
+![:scale 90%](pic/line_graph.png)
+
+일일이 계산할 필요는 없습니다. tidygraph에서 변환 함수를 제공합니다. 
+
+```r
+myg_line &lt;- convert(myg, to_linegraph)
+myg_line
+```
+
+```
+## # A tbl_graph: 6 nodes and 9 edges
+## #
+## # An undirected simple graph with 1 component
+## #
+## # Node Data: 6 x 1 (active)
+##   .tidygraph_edge_index
+##                   &lt;int&gt;
+## 1                     1
+## 2                     2
+## 3                     3
+## 4                     4
+## 5                     5
+## 6                     6
+## #
+## # Edge Data: 9 x 2
+##    from    to
+##   &lt;int&gt; &lt;int&gt;
+## 1     1     2
+## 2     1     3
+## 3     2     3
+## # … with 6 more rows
+```
+---
+to_linegraph와 같은 그래프 조작 함수들은 `morph`와 같이 쓰면, 본인이 작업하고 있는 그래프에서 **임시로** 해당 함수를 적용한 그래프에서 작업하고 다시 원래 그래프로 돌아가는 것이고, convert는 아예 해당 함수를 적용한 그래프를 추출해주는 기능을 합니다. 
+
+
+```r
+# 물론 약간의 수고는 필요합니다. 
+edge_df &lt;- as_tibble(myg, active = "edges") # 중요한 팁입니다. 
+edge_ind &lt;-  edge_df %&gt;%
+  mutate(edge_index = paste0(from, ",", to))
+myg_line &lt;- myg_line %N&gt;%
+  mutate(edge_name = edge_ind$edge_index)
+myg_line
+```
+
+```
+## # A tbl_graph: 6 nodes and 9 edges
+## #
+## # An undirected simple graph with 1 component
+## #
+## # Node Data: 6 x 2 (active)
+##   .tidygraph_edge_index edge_name
+##                   &lt;int&gt; &lt;chr&gt;    
+## 1                     1 1,2      
+## 2                     2 1,3      
+## 3                     3 1,4      
+## 4                     4 2,5      
+## 5                     5 3,4      
+## 6                     6 4,5      
+## #
+## # Edge Data: 9 x 2
+##    from    to
+##   &lt;int&gt; &lt;int&gt;
+## 1     1     2
+## 2     1     3
+## 3     2     3
+## # … with 6 more rows
+```
+---
+결과를 확인해봅니다. 앞서 본 최종 line graph와 동일한지 살펴 봅시다.  
+
+
+```r
+ggraph(myg_line, layout = "kk") +
+  geom_edge_fan() +
+  geom_node_point(size = 8, colour = 'steelblue') +
+  geom_node_label(aes(label = edge_name),
+                 repel = TRUE)
+```
+
+&lt;img src="network_course_202011_part02_files/figure-html/unnamed-chunk-23-1.png" width="50%" /&gt;
+
+---
+이제 다른 몇가지 그래프 조작 함수를 연습해 봅니다. 
+`to_subgraph` 함수입니다. 
+
+
+```r
+# 앞에서 라인그래프 최초의 그래프입니다. 
+V(myg)$name &lt;-  1:gorder(myg) # igraph 방식입니다. 
+ggraph(myg, layout = "kk") +
+  geom_edge_link() +
+  geom_node_point(size = 8, colour = 'steelblue') +
+  geom_node_label(aes(label = name),
+                 repel = TRUE)
+```
+
+&lt;img src="network_course_202011_part02_files/figure-html/unnamed-chunk-25-1.png" width="50%" /&gt;
+
+---
+이제 특정 조건을 충족하는 subgraph를 뽑아 봅니다. 
+
+```r
+myg_sub &lt;- convert(myg, to_subgraph, name %in% c(3, 5),
+                   subset_by = "nodes")
+# c(1,3, 4)등 조건을 변화시키면 됩니다. 
+ggraph(myg_sub, layout = "kk") +
+  geom_edge_link() +
+  geom_node_point(size = 8, colour = 'steelblue') +
+  geom_node_label(aes(label = name),
+                 repel = TRUE)
+```
+
+&lt;img src="network_course_202011_part02_files/figure-html/unnamed-chunk-26-1.png" width="50%" /&gt;
+---
+이제는 `to_subcomponent`함수로, 특정 노드가 포함된 component를 뽑아 줍니다. 관련 함수로 `to_local_neighborhoood` 함수가 있습니다. 특정 노드와 연결된 **ego network**를 추출해줍니다. 특정 노드와 연결 범위(order)를 지정해줄 수도 있습니다.  
+
+
+```r
+myg_subcom &lt;- convert(myg, to_subcomponent,
+                      node = 1)
+# 당연히 원래 그래프 전부를 추출해 줍니다. 
+ggraph(myg_subcom, layout = "kk") +
+  geom_edge_link() +
+  geom_node_point(size = 8, colour = 'steelblue') +
+  geom_node_label(aes(label = name),
+                 repel = TRUE)
+```
+
+&lt;img src="network_course_202011_part02_files/figure-html/unnamed-chunk-27-1.png" width="45%" /&gt;
+---
+
+
+```r
+myg_neighbor &lt;- convert(myg, to_local_neighborhood,
+                      node = 1, order = 1, mode = "all")
+ggraph(myg_neighbor, layout = "kk") +
+  geom_edge_link() +
+  geom_node_point(size = 8, colour = 'steelblue') +
+  geom_node_label(aes(label = name),
+                 repel = TRUE)
+```
+
+&lt;img src="network_course_202011_part02_files/figure-html/unnamed-chunk-28-1.png" width="55%" /&gt;
+
+
+---
+이제 어제 배웠던 "strongly connected component"를 시각화 해봅니다. 클러스터/집단에 영역을 칠해주는 방법, 한글처리 등도 연습합니다. 
+
+
+```r
+my_scc &lt;- tbl_graph(edges =
+                   data.frame(
+                     from = c("a", "b", "b", "b",
+                              "c", "c",
+                              "d", "d",
+                              "e", "e",
+                              "f", "g", "h", "h"),
+                     to = c("b", "c", "e", "f",
+                            "g", "d",
+                            "c", "h",
+                            "a", "f",
+                            "g", "f", "d", "g")),
+                 directed = TRUE)
+```
+---
+일단 그래프 모양을 봅니다. 
+
+
+```r
+plot(my_scc)
+```
+
+![](network_course_202011_part02_files/figure-html/unnamed-chunk-30-1.png)&lt;!-- --&gt;
+---
+이것은 원래 이렇게 생긴 Strongly Connected Component의 사례로 자주 보는 그래프입니다. 
+
+![scale: 100%](pic/Scc.png)
+
+이것을 ggraph로 구현해보겠습니다. 
+
+
+```r
+# 컴포넌트를 찾아 그룹으로 지정합니다. 
+my_scc &lt;-
+  my_scc %N&gt;%
+  mutate(group = group_components(type = "strong"))
+```
+
+```r
+# 수동으로 레이아웃 좌표도 뽑아 놓습니다. (필수는 아닙니다)
+my_layout &lt;- create_layout(my_scc, layout = "fr")
+```
+---
+
+```r
+library(ggforce)
+library(concaveman)
+```
+
+```r
+# 영역표시 함수인 geom_mark_hull의 label로 쓸 변수를 추가합니다. 
+my_scc &lt;- my_scc %N&gt;%
+  mutate(desc = c("그룹1", "그룹2", "그룹3")[group])
+```
+
+```r
+# 자신이 원하는 폰트를 사용하는 가장 전형적인 방법입니다. 이미 해봤죠?
+# library(extrafont)
+# font_import(pattern = 'NanumBarun') # 콘솔창에서 Y로 답합니다.
+# loadfonts(device = "win")
+```
+
+
+---
+
+```r
+p &lt;- ggraph(my_scc, layout = "manual",
+       x = my_layout$x,
+       y = my_layout$y) +
+  geom_edge_fan(arrow = arrow(angle = 20,
+                               length = unit(2, "mm"),
+                               ends = "last",
+                               type = "closed"),
+                 start_cap = circle(3.2, 'mm'),
+                 end_cap  = circle(3.2, 'mm')) +
+  geom_node_point(aes(fill = factor(group),
+                      colour = factor(group)), size = 8) +
+  geom_mark_hull(
+    aes(x, y, group = factor(group),
+        fill = factor(group), label = factor(desc)),
+    concavity = 4,
+    expand = unit(6, "mm"),
+    alpha = 0.25,
+    colour = NA,
+    label.family = "NanumBarunGothic"
+  ) + 
+   geom_node_text(aes(label = name),
+                 vjust = 0.5,
+                 colour = 'white') + 
+   scale_fill_manual(breaks = 1:3,
+                   labels = c("그룹1", "그룹2", "그룹3"),
+                   values = palette("Set1"),
+                   name = "강한 컴포넌트") 
+```
+---
+
+```r
+p &lt;- p + 
+  scale_color_manual(breaks = 1:3,
+                   labels = c("그룹1", "그룹2", "그룹3"),
+                   values = palette("Set1"),
+                   name = "강한 컴포넌트") +
+  theme(legend.title = element_text(size = 10, family = "NanumBarunGothic"),
+        legend.text = element_text(size = 9.5, family = "NanumBarunGothic"),
+        legend.position = "bottom")
+p
+```
+
+&lt;img src="network_course_202011_part02_files/figure-html/unnamed-chunk-37-1.png" width="55%" /&gt;
+---
+#### 그래프의 고해상도 출력
+
+
+```r
+# 이런 식으로 본인이 원하는 크기와 해상도를 입력하면 됩니다. 
+ggsave(plot = p, filename = "strong_component.png",
+       units = "in", width = 12, height = 8,    dpi = 600)   
+```
+(아래아)한글에서 png의 dpi는 600까지 한계인 듯 합니다. 그 이상의 고해상도 png파일은 표시가 안됩니다. 
+
+![:scale 80%](pic/strong_component.png)
+---
+그래프에 대한 조작을 조금 더 들어가봅니다. 계속 언급하던 morph입니다. 이를 위해 앞서 작업했던 Zachary's karate 데이터에 대해 임의로 edge에 가중치를 부여합니다. &lt;br&gt;
+
+
+```r
+zachary &lt;- create_notable("zachary")
+zachary &lt;- zachary %&gt;% 
+  activate(edges) %&gt;% 
+  mutate(weight = sample(seq(0.1, 1.0, 0.1), 78, replace = TRUE))
+# zachary %E&gt;%  filter(weight &gt;=0.5)  
+# zachary %E&gt;%  filter(weight &gt;=0.9) # 몇 개 인지 확인하려고 한 겁니다. 
+zachary &lt;- zachary %N&gt;% 
+  mutate(index = 1:graph_order()) # 인덱스를 붙여줍니다. 
+```
+
+---
+원하는 것은 edge의 weight가 0.9 이상인 노드를 찾아서 strong이라는 노드 속성에 체크를 하는 것입니다. 
+
+```r
+# 노드 activate에서 엣지를 불러오는 것은 .E(), 반대로 엣지 작업 중에 노드를 불러오는 것은 .N()입니다. 
+# 이를 이용해 to_subgraph 함수에 필터링 조건을 걸 수 있습니다. 
+zachary &lt;- zachary %N&gt;%
+  morph(to_subgraph, ((index %in% .E()[.E()$weight &gt;= 0.9,]$from) |
+           (index %in% .E()[.E()$weight &gt;= 0.9,]$to)), 
+           subset_by = "nodes") %N&gt;% 
+  mutate(strong = 1) %&gt;% unmorph()
+zachary
+```
+
+```
+## # A tbl_graph: 34 nodes and 78 edges
+## #
+## # An undirected simple graph with 1 component
+## #
+## # Node Data: 34 x 2 (active)
+##   index strong
+##   &lt;int&gt;  &lt;dbl&gt;
+## 1     1      1
+## 2     2      1
+## 3     3      1
+## 4     4      1
+## 5     5     NA
+## 6     6     NA
+## # … with 28 more rows
+## #
+## # Edge Data: 78 x 3
+##    from    to weight
+##   &lt;int&gt; &lt;int&gt;  &lt;dbl&gt;
+## 1     1     2    0.7
+## 2     1     3    0.3
+## 3     1     4    1  
+## # … with 75 more rows
+```
+
+---
+방금 전에 만든 strong 속성을 정리합니다. strong에 1이 부여되지 않은 것은 NA로 되어 있으니 이를 다음과 같이 0으로 만듭니다. 
+
+```r
+zachary &lt;- zachary %N&gt;%
+  mutate(strong = ifelse(is.na(strong), 0, 1))
+zachary &lt;- zachary %E&gt;%
+  mutate(strong = ifelse(weight &gt;=0.9, 1, 0))
+zachary &lt;- zachary %N&gt;%
+  mutate(group = group_infomap()) # 클러스터링도 합니다. 
+```
+
+---
+지금까지 했던 작업들을 모아 그래프를 생성합니다. 
+
+```r
+p &lt;- ggraph(zachary, layout = "stress") +
+  geom_edge_link(aes(alpha = strong, width = factor(strong),
+                 color = factor(strong)), alpha = 0.5) +
+  geom_node_point(aes(alpha = strong, colour = factor(group)), size = 8) +
+  geom_node_text(aes(label = index, alpha = strong), vjust = 0.5, 
+                 color = "white") +
+  scale_alpha_continuous(range = c(0.2,1)) +
+  scale_colour_discrete(name = "group") +
+  scale_edge_width_discrete(name = "over 0.9 weight", breaks = c(0,1), 
+                            range = c(0.5,2), label = c("FALSE", "TRUE")) +
+  scale_edge_color_manual(name = "over 0.9 weight", breaks = c(0,1), 
+                          values = c("grey", "blue"), label = c("FALSE", "TRUE")) +
+  guides(alpha = FALSE) # 알파는 레전드 생략
+```
+---
+![](network_course_202011_part02_files/figure-html/unnamed-chunk-43-1.png)&lt;!-- --&gt;
+---
+이제 조금 더 실전 데이터로 들어가겠습니다.&lt;br&gt; 
+이제부터 사용하는 데이터는 [구글 드라이브](https://drive.google.com/drive/folders/1DolWgQgrNbh5wk0x5cZEGepsKtD_836y?usp=sharing)에 들어가셔서 받으시면 됩니다.&lt;br&gt;
+
+먼저 프랑스로 기차여행을 떠나겠습니다. 
+
+```r
+library(data.table)
+small_trains &lt;- fread("small_trains.csv")
+```
+
+```r
+# 출발역과 도착역의 조합을 기준으로 평균 여행시간을 계산합니다.  
+library(dplyr)
+routes &lt;- small_trains %&gt;%
+  group_by(departure_station, arrival_station) %&gt;%
+  summarise(journey_time = mean(journey_time_avg)) %&gt;%
+  ungroup() %&gt;%
+  mutate(from = departure_station, 
+         to = arrival_station) %&gt;%
+  select(from, to, journey_time)
+# 이제는 익숙한 edge 데이터프레임을 만들고 
+graph_routes &lt;- as_tbl_graph(routes)
+library(stringr)
+# 역 이름을 다듬어 줍니다.
+graph_routes &lt;- graph_routes %&gt;%
+  activate(nodes) %&gt;%
+  mutate(
+    title = str_to_title(name),
+    label = str_replace_all(title, " ", "\n"))
+```
+---
+하려고 하는 작업은 두개의 역을 정하면 역 간의 최단 거리를 그래프 상에서 표시하는 겁니다. 
+
+```r
+# 바로 뒤에 쓰이게 될 역명을 벡터로 따로 저장해 놓습니다. 
+stations &lt;- graph_routes %&gt;%  activate(nodes) %&gt;%
+  pull(title)
+# 지금까지 생성한 데이터로 간략히 그려봅니다. 
+graph_routes %&gt;%
+  ggraph(layout = "kk") +
+    geom_node_point() +
+    geom_edge_diagonal() # 곡선화 
+```
+
+&lt;img src="network_course_202011_part02_files/figure-html/unnamed-chunk-46-1.png" width="55%" /&gt;
+---
+지금까지 배운 실력을 동원하면 아래와 같은 장식은 쉬운 일입니다. 
+
+```r
+graph_routes %&gt;%
+  ggraph(layout = "kk") +
+    geom_node_text(aes(label = label, color = name), size = 3) +
+    geom_edge_diagonal(color = "gray", alpha = 0.4) +
+  guides(color = FALSE)
+```
+
+&lt;img src="network_course_202011_part02_files/figure-html/unnamed-chunk-47-1.png" width="60%" /&gt;
+---
+
+```r
+# 선택한 두 역에 대해 강조했던 인덱싱 번호를 뽑아 놓습니다. 
+from &lt;- which(stations == "Arras")
+to &lt;-  which(stations == "Nancy")
+
+# 가장 핵심입니다. 
+shortest &lt;- graph_routes %&gt;%
+  morph(to_shortest_path, from, to, weights = journey_time)
+# morph에 최단 거리 함수를 적용합니다. 
+# 일단 이것을 shortest에 저장해놓습니다. morph된 상태입니다. 
+
+# morph 상태에서 작업한 노드와 엣지를 체크합니다. 
+shortest &lt;- shortest %&gt;%
+  mutate(selected_node = TRUE) %&gt;%
+  activate(edges) %&gt;%
+  mutate(selected_edge = TRUE) %&gt;%
+  unmorph()
+
+# 앞에서도 봤듯이 이렇게 하면 나머지는 NA이므로, 한번 더 작업해줍니다.  
+shortest &lt;- shortest %&gt;%
+  activate(nodes) %&gt;%
+  mutate(selected_node = ifelse(is.na(selected_node), 1, 2)) %&gt;%
+  activate(edges) %&gt;%
+  mutate(selected_edge = ifelse(is.na(selected_edge), 1, 2)) %&gt;%
+  arrange(selected_edge)
+```
+---
+이제 그래프에 표시합니다. 투명도 alpha를 사용하여 구분을 줍니다.  
+
+```r
+shortest %&gt;%
+  ggraph(layout = "kk") +
+    geom_edge_diagonal(aes(alpha = selected_edge), color = "gray") +
+    geom_node_text(aes(label = label, color =name, alpha = selected_node ), size = 3) + theme(legend.position = "none") +
+  scale_alpha_continuous(range = c(0.2,1))
+```
+
+&lt;img src="network_course_202011_part02_files/figure-html/unnamed-chunk-49-1.png" width="55%" /&gt;
+---
+제법 멋지게 나왔습니다. 다른 역들이 너무 안보이니 투명도 알파에 대한 스케일 범위를 좀 좁히고, 경로의 두께를 좀 더 줍니다. 
+
+```r
+shortest %&gt;% ggraph(layout = "kk") +
+    geom_edge_diagonal(aes(alpha = selected_edge,
+                           width = selected_edge), color = "gray") +
+    geom_node_text(aes(label = label, color =name, alpha = selected_node ), size = 3) + theme(legend.position = "none") +
+  scale_alpha_continuous(range = c(0.4, 1)) +
+  scale_edge_width_continuous(range = c(0.4,2))
+```
+
+&lt;img src="network_course_202011_part02_files/figure-html/unnamed-chunk-50-1.png" width="50%" /&gt;
+
+---
+이 작업을 수도권 전철에서도 해봅니다. 
+
+
+```r
+subway &lt;- fread("subway.csv", encoding = "UTF-8")
+subway &lt;- as_tbl_graph(subway)
+subway &lt;- subway %&gt;% activate(nodes) %&gt;%  
+  mutate(index = 1:graph_order())
+
+# 역이름을 벡터로 추출해 놓습니다.
+station_vec &lt;- as_tibble(subway, "nodes")$name
+
+# 불광에서 오이도까지 가는 최단경로를 표시 
+shortest &lt;- subway %E&gt;% 
+  morph(to_shortest_path, from = which(station_vec == "불광"),
+        to = which(station_vec == "오이도"))
+shortest &lt;- shortest %N&gt;% 
+  mutate(my_shortest = TRUE) %E&gt;% 
+  mutate(my_shortest = TRUE) %&gt;% unmorph()
+shortest &lt;- shortest %N&gt;%
+  mutate(my_shortest = ifelse(is.na(my_shortest), 1, 2)) %E&gt;% 
+  mutate(my_shortest = ifelse(is.na(my_shortest), 1, 2))
+```
+---
+불광 - 오이도 최단 경로를 표시합니다. 
+
+
+```r
+ggraph(shortest, layout = "stress") +
+  geom_edge_link(aes(color = line, alpha  = my_shortest,
+                     width = my_shortest)) +
+  geom_node_point(aes(alpha = my_shortest)) +
+  geom_node_text(aes(label = name, filter = (my_shortest==2), 
+                     alpha = my_shortest), size = 3, repel = TRUE, 
+                 family = "NanumBarunGothic") +
+  theme(legend.position = "none") + 
+  scale_alpha_continuous(range = c(0.2, 1)) +
+  scale_edge_width_continuous(range = c(0.4,2))
+```
+
+&lt;img src="network_course_202011_part02_files/figure-html/unnamed-chunk-52-1.png" width="60%" /&gt;
+---
+## stack overflow 네트워크 
+
+
+```r
+# 노드와 엣지 모두 잘 정리해 놓은 것을 불러들입니다. 
+stack_network &lt;- tbl_graph(nodes = fread("stack_network_nodes.csv"),
+                           edges = fread("stack_network_links.csv"), 
+                           directed = FALSE)
+
+# 확인해봅니다. 
+stack_network
+```
+
+```
+## # A tbl_graph: 115 nodes and 490 edges
+## #
+## # An undirected multigraph with 6 components
+## #
+## # Node Data: 115 x 3 (active)
+##   name          group nodesize
+##   &lt;chr&gt;         &lt;int&gt;    &lt;dbl&gt;
+## 1 html              6    272. 
+## 2 css               6    341. 
+## 3 hibernate         8     29.8
+## 4 spring            8     52.8
+## 5 ruby              3     70.1
+## 6 ruby-on-rails     3     55.3
+## # … with 109 more rows
+## #
+## # Edge Data: 490 x 3
+##    from    to value
+##   &lt;int&gt; &lt;int&gt; &lt;dbl&gt;
+## 1    22   105  20.9
+## 2    22    29  32.3
+## 3    12    22  48.4
+## # … with 487 more rows
+```
+---
+어제 보았던 그 네트워크입니다. 
+
+
+```r
+set.seed(2017)
+ggraph(stack_network, layout = "fr") +
+    geom_edge_link(alpha = 0.2, aes(width = value)) +
+    geom_node_point(aes(color = as.factor(group), size = 10 * nodesize)) +
+    geom_node_text(aes(label = name), repel = TRUE) +
+    theme_graph(base_family = "NanumBarunGothic") +
+    theme(plot.title = element_text(family="NanumBarunGothic"),
+          legend.position="none") +
+    labs(title = "Stack Overflow Tag Network",
+         subtitle = "Tags correlated on Developer Stories")
+```
+
+&lt;img src="network_course_202011_part02_files/figure-html/unnamed-chunk-54-1.png" width="45%" /&gt;
+---
+class: inverse, middle, center
+
+### 이제 진짜 실전문제로
+### Web of Science에
+### 도전하겠습니다.  
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script src="macros.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
